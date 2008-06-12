@@ -1,0 +1,103 @@
+﻿<Window x:Class="Test.Window1"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:gi="clr-namespace:GreyableImage;assembly=GreyableImage"
+        Title="Greyable Image Test"
+        Height="350"
+        Width="700">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Orientation="Vertical">
+      <CheckBox Name="checkbox" IsChecked="True" Margin="10"
+                Content="Enable Controls - when unticked all controls below are disabled"/>
+      <CheckBox Click="CheckBox_Click" Margin="10"
+                Content="Apply Opacity mask to top 4 images"/>
+    </StackPanel>
+    
+    <ListBox BorderThickness="0" Margin="5,20,5,5">
+      <StackPanel Orientation="Horizontal">
+        <Image Name="img1" Source="image.png" Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+               IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}"/>
+        <TextBlock Margin="10,0,10,0" Text="standart WPF image" VerticalAlignment="Center"/>
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal">
+        <gi:GreyableImage x:Name="img2" Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}" Opacity="0.5">
+          <gi:GreyableImage.Source>
+            <BitmapImage UriSource="image.png"/>
+          </gi:GreyableImage.Source>
+        </gi:GreyableImage>
+        <TextBlock Margin="10,0,10,0" Text="greyable image on white background with 0.5 opacity created as BitmapImage" VerticalAlignment="Center"/>
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" Background="LightGreen">
+        <gi:GreyableImage x:Name="img3" Source="image.png" 
+                             Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}"/>
+        <TextBlock Margin="10,0,10,0" Text="greyable image on green background created by setting Source to Uri" VerticalAlignment="Center"/>
+      </StackPanel>
+      
+      <StackPanel Orientation="Horizontal" Background="Black">
+        <gi:GreyableImage x:Name="img4" Source="image.png" 
+                             Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}"/>
+        <TextBlock Foreground="White" Margin="10,0,10,0" Text="greyable image on a black bacground" VerticalAlignment="Center"/>
+      </StackPanel>
+      
+      <StackPanel Orientation="Horizontal">
+        <gi:GreyableImage Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}">
+          <gi:GreyableImage.Source>
+            <DrawingImage>
+              <DrawingImage.Drawing>
+                <GeometryDrawing>
+                  <GeometryDrawing.Geometry>
+                    <GeometryGroup>
+                      <EllipseGeometry Center="8,8" RadiusX="8" RadiusY="3"/>
+                      <EllipseGeometry Center="8,8" RadiusX="3" RadiusY="8"/>
+                    </GeometryGroup>
+                  </GeometryDrawing.Geometry>
+                  <GeometryDrawing.Brush>
+                    <SolidColorBrush Color="GreenYellow" />
+                  </GeometryDrawing.Brush>
+                  <GeometryDrawing.Pen>
+                    <Pen Thickness="1" Brush="Black"/>
+                  </GeometryDrawing.Pen>
+                </GeometryDrawing>
+              </DrawingImage.Drawing>
+            </DrawingImage>
+          </gi:GreyableImage.Source>
+          <gi:GreyableImage.LayoutTransform>
+            <RotateTransform Angle="45"/>
+          </gi:GreyableImage.LayoutTransform>
+        </gi:GreyableImage>
+
+        <TextBlock Margin="10,0,10,0" Text="greyable image with Layout transform created as DrawingImage" VerticalAlignment="Center"/>
+      </StackPanel>
+      
+      <StackPanel Orientation="Horizontal">
+        <gi:GreyableImage Source="image.png" Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}">
+          <gi:GreyableImage.BitmapEffect>
+            <BlurBitmapEffect KernelType="Gaussian" Radius="1" />
+          </gi:GreyableImage.BitmapEffect>
+        </gi:GreyableImage>
+
+        <TextBlock Margin="10,0,10,0" Text="greyable image with bitmap effect" VerticalAlignment="Center"/>
+      </StackPanel>
+      
+      <StackPanel Orientation="Horizontal">
+        <Button Margin="5" Width="55" Height="25" IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <gi:GreyableImage Source="image.png" Width="16" Height="16" SnapsToDevicePixels="True"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="test"/>
+          </StackPanel>
+        </Button>
+
+        <TextBlock Margin="10,0,10,0" Text="greyable image on a button (when checkbox is unticked it is only the button that get's desabled)" VerticalAlignment="Center"/>
+      </StackPanel>
+
+    </ListBox>
+  </DockPanel>
+</Window>
