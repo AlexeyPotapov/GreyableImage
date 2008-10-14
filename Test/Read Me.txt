@@ -1,0 +1,48 @@
+﻿Window1.XAML
+
+Here are some tests for different scenarious when GreyableImage is used directly from XAML.
+Use checkboxes to enable/disable all images below and to apply opacity masks to some of them.
+Read notes to the left of each image for explanations.
+
+
+
+Window2.XAML
+
+In this case the Greyable image is used indirectly. There is a CustomControl with Icon dependency
+property of type object which allows it to be set to anything from XAML. The CoerseValue callback is than 
+used by CustomControl to check what type of the object is assigned to Icon and in case of a string it
+tries to resolve it as a Uri of an image resource and create GreyableImage from it.
+
+The trick here is that if a relative uri is used to initialise Icon property, the BitmapImage source 
+created in CoerceValue callback of the CustomControl will point to an image RELATIVE TO THE TEST APP.
+Then when Source property of GreyableImage is initialised with that BitmapImage the GreyableImage control
+will use it to create greyscaled version. It does so using FormatConvertedBitmap() method that requires
+BitmapSource as an input. BUT the BitmapSource that have been provided to the GreyableImage is relative 
+because it all happens in runtime FormatConvertedBitmap() will look for the BitmapSource locatoin relative 
+to the locatoin of GreyableImage.dll file which can be anywhere...
+
+To fix this issue GreyableImage tries to resolve Source Uri as Absolute and if is fails, it than assumes 
+that the Uri is relative and adds "pack://application:,,,/" in front of Uri string attempting to make it
+an absolute Uri, then tries to resolve it again.
+
+
+To see it in action run the Window2.XAML test and then in GreyableImage code change that line:
+
+private void SetSources()
+{
+  ....
+  if (!Uri.TryCreate(stringUri, UriKind.Absolute, out uri))
+  ....
+}
+
+to that one:
+
+private void SetSources()
+{
+  ....
+  if (!Uri.TryCreate(stringUri, UriKind.RelativeOrAbsolute, out uri))
+  ....
+}
+
+now the Uri will be resolved as relative and an attempt to create greyscaled image will fail because
+the path to the imagesource is wrong.

@@ -35,14 +35,20 @@ namespace GreyableImage
   /// grey itself out when disabled is essential.
   /// <remarks>
   /// 1) Greyscale image is created using FormatConvertedBitmap class. Unfortunately when converting the
-  /// image to greyscale this class does nt preserve transparency information. To overcome that, there is 
-  /// an opacity mask created from original image that is applied to greyscale image in order to preserve
-  /// transparency information. Because of that if an OpacityMask is applied to original image that mask 
-  /// has to be combined with that special opacity mask of greyscale image in order to make a proper 
-  /// greyscale image look. If you know how to combine two opacity masks feel free to fix that issue.
+  ///    image to greyscale this class does n0t preserve transparency information. To overcome that, there is 
+  ///    an opacity mask created from original image that is applied to greyscale image in order to preserve
+  ///    transparency information. Because of that if an OpacityMask is applied to original image that mask 
+  ///    has to be combined with that special opacity mask of greyscale image in order to make a proper 
+  ///    greyscale image look. If you know how to combine two opacity masks please let me know.
   /// 2) DrawingImage source is not supported at the moment.
   /// 3) Have not tried to use any BitmapSource derived sources accept for BitmapImage so it may not be 
-  /// able to convert them to greyscale too.
+  ///    able to convert some of them to greyscale.
+  /// 4) When specifying source Uri from XAML try to use Absolute Uri otherwise the greyscale image
+  ///    may not be created in some scenarious. There is some code to improve the situation but I cannot 
+  ///    guarantee it will work in all possible scenarious.
+  /// 5) In case the greyscaled version cannot be created for whatever reason the original image with 
+  ///    60% opacity (i.e. dull colours) will be used instead (that will work even with the DrawingImage 
+  ///    source).
   /// </remarks>
   /// </summary>
   public class GreyableImage : Image
@@ -51,6 +57,11 @@ namespace GreyableImage
     private ImageSource _sourceC, _sourceG;
     // these are holding original and greyscale opacity masks
     private Brush _opacityMaskC, _opacityMaskG;
+
+    static GreyableImage()
+    {
+      DefaultStyleKeyProperty.OverrideMetadata(typeof(GreyableImage), new FrameworkPropertyMetadata(typeof(GreyableImage)));
+    }
 
     /// <summary>
     /// Overwritten to handle changes of IsEnabled, Source and OpacityMask properties
@@ -92,27 +103,38 @@ namespace GreyableImage
     /// </summary>
     private void SetSources()
     {
-      _sourceC = Source;
+      // in case greyscale image cannot be created set greyscale source to original Source first
+      _sourceG = _sourceC = Source;
+
+      // create Opacity Mask for greyscale image as FormatConvertedBitmap does not keep transparency info
+      _opacityMaskG = new ImageBrush(_sourceC);
+      _opacityMaskG.Opacity = 0.6;
 
       try
       {
+        // get the string Uri for the original image source first
+        String stringUri = TypeDescriptor.GetConverter(Source).ConvertTo(Source, typeof(string)) as string;
+        Uri uri = null;
+        // try to resolve it as an absolute Uri (if it is relative and used it as is
+        // it is likely to point in a wrong direction)
+        if (!Uri.TryCreate(stringUri, UriKind.Absolute, out uri))
+        {
+          // it seems that the Uri is relative, at this stage we can only assume that
+          // the image requested is in the same assembly as this oblect,
+          // so we modify the string Uri to make it absolute ...
+          stringUri = "pack://application:,,,/" + stringUri.TrimStart(new char[2] { System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar });
+
+          // ... and try to resolve again
+          uri = new Uri(stringUri);
+        }
+
         // create and cache greyscale ImageSource
-        _sourceG = new FormatConvertedBitmap(new BitmapImage(new Uri(TypeDescriptor.GetConverter(Source).ConvertTo(Source, typeof(string)) as string)),
-                                             PixelFormats.Gray8, null, 0);
-
-        // create Opacity Mask for greyscale image as FormatConvertedBitmap does not keep transparency info
-        _opacityMaskG = new ImageBrush(_sourceC);
-        _opacityMaskG.Opacity = 0.6;
+        _sourceG = new FormatConvertedBitmap(new BitmapImage(uri), PixelFormats.Gray8, null, 0);
       }
-      catch
+      catch (Exception e)
       {
-#if DEBUG
-        MessageBox.Show(String.Format("The ImageSource used cannot be greyed out.\nUse BitmapImage or URI as a Source in order to allow greyscaling.\nSource type used: {0}", Source.GetType().Name),
-                        "Unsupported Source in GreyableImage", MessageBoxButton.OK, MessageBoxImage.Warning);
-#endif // DEBUG
-
-        // in case greyscale image cannot be created set greyscale source to original Source
-        _sourceG = Source;
+        System.Diagnostics.Debug.Fail("The Image used cannot be greyed out.",
+                                      "Use BitmapImage or URI as a Source in order to allow greyscaling. Make sure the absolute Uri is used as relative Uri may sometimes resolve incorrectly.\n\nException: " + e.Message);
       }
     }
   }
