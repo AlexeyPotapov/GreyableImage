@@ -35,7 +35,7 @@ namespace GreyableImage
   /// grey itself out when disabled is essential.
   /// <remarks>
   /// 1) Greyscale image is created using FormatConvertedBitmap class. Unfortunately when converting the
-  ///    image to greyscale this class does n0t preserve transparency information. To overcome that, there is 
+  ///    image to greyscale this class does not preserve transparency information. To overcome that, there is 
   ///    an opacity mask created from original image that is applied to greyscale image in order to preserve
   ///    transparency information. Because of that if an OpacityMask is applied to original image that mask 
   ///    has to be combined with that special opacity mask of greyscale image in order to make a proper 
@@ -49,24 +49,63 @@ namespace GreyableImage
   /// 5) In case the greyscaled version cannot be created for whatever reason the original image with 
   ///    60% opacity (i.e. dull colours) will be used instead (that will work even with the DrawingImage 
   ///    source).
+  /// 6) SnapsToDevicePixels is set to true by default
+  /// 7) Stretch is set to none by default
   /// </remarks>
   /// </summary>
   public class GreyableImage : Image
   {
+    #region Fields
+
     // these are holding references to original and greyscale ImageSources
     private ImageSource _sourceC, _sourceG;
     // these are holding original and greyscale opacity masks
     private Brush _opacityMaskC, _opacityMaskG;
 
-    static GreyableImage()
+    #endregion // Fields
+
+    #region Constructors
+
+    /// <summary>
+    /// Default constructor. Creates an empty image.
+    /// </summary>
+    public GreyableImage()
     {
-      DefaultStyleKeyProperty.OverrideMetadata(typeof(GreyableImage), new FrameworkPropertyMetadata(typeof(GreyableImage)));
+      // since this class was intended for use in toolbars and menus it is most often the case that the image should
+      // not be stretched and should be snapped to pixels so those properties are set this way by default
+      SnapsToDevicePixels = true;
+      Stretch = Stretch.None;
     }
+
+    /// <summary>
+    /// This constructor simplifies creating GreyableImage from code
+    /// </summary>
+    /// <param name="sourceUri">string Uri used to set Source property</param>
+    public GreyableImage(String sourceUri)
+    {
+      // since this class was intended for use in toolbars and menus it is most often the case that the image should
+      // not be stretched and should be snapped to pixels so those properties are set this way by default
+      SnapsToDevicePixels = true;
+      Stretch = Stretch.None;
+
+      try
+      {
+        Source = new BitmapImage(GetAbsoluteUri(sourceUri));
+      }
+      catch (Exception e)
+      {
+        System.Diagnostics.Debug.Fail("Source URI is invalid.",
+                                      "The string URI used to construct the image is invalid. The image Source is not set. Make sure a correct absolute Uri is used as relative Uri may sometimes resolve incorrectly.\n\nException: " + e.Message);
+      }
+    }
+
+    #endregion // Constructors
+
+    #region Overrides
 
     /// <summary>
     /// Overwritten to handle changes of IsEnabled, Source and OpacityMask properties
     /// </summary>
-    /// <param name="e"></param>
     protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
       if (e.Property.Name.Equals("IsEnabled"))
@@ -98,6 +137,10 @@ namespace GreyableImage
       base.OnPropertyChanged(e);
     }
 
+    #endregion // Overrides
+
+    #region Private Helpers
+
     /// <summary>
     /// Cashes original ImageSource, creates and caches greyscale ImageSource and greyscale opacity mask
     /// </summary>
@@ -114,19 +157,9 @@ namespace GreyableImage
       {
         // get the string Uri for the original image source first
         String stringUri = TypeDescriptor.GetConverter(Source).ConvertTo(Source, typeof(string)) as string;
-        Uri uri = null;
-        // try to resolve it as an absolute Uri (if it is relative and used it as is
-        // it is likely to point in a wrong direction)
-        if (!Uri.TryCreate(stringUri, UriKind.Absolute, out uri))
-        {
-          // it seems that the Uri is relative, at this stage we can only assume that
-          // the image requested is in the same assembly as this oblect,
-          // so we modify the string Uri to make it absolute ...
-          stringUri = "pack://application:,,,/" + stringUri.TrimStart(new char[2] { System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar });
-
-          // ... and try to resolve again
-          uri = new Uri(stringUri);
-        }
+        
+        // generate an absolute Uri for the string Uri
+        Uri uri = GetAbsoluteUri(stringUri);
 
         // create and cache greyscale ImageSource
         _sourceG = new FormatConvertedBitmap(new BitmapImage(uri), PixelFormats.Gray8, null, 0);
@@ -137,5 +170,36 @@ namespace GreyableImage
                                       "Use BitmapImage or URI as a Source in order to allow greyscaling. Make sure the absolute Uri is used as relative Uri may sometimes resolve incorrectly.\n\nException: " + e.Message);
       }
     }
+
+    /// <summary>
+    /// Creates and returns an absolute Uri using the path provided.
+    /// Throws UriFormatException if an absolute URI cannot be created.
+    /// </summary>
+    /// <param name="stringUri">string uri</param>
+    /// <returns>an absolute URI based on string URI provided</returns>
+    /// <exception cref="UriFormatException - thrown when absolute Uri cannot be created from provided stringUri."/>
+    /// <exception cref="ArgumentNullException - thrown when stringUri is null."/>
+    private Uri GetAbsoluteUri(String stringUri)
+    {
+      Uri uri = null;
+
+      // try to resolve it as an absolute Uri 
+      // if uri is relative its likely to point in a wrong direction
+      if (!Uri.TryCreate(stringUri, UriKind.Absolute, out uri))
+      {
+        // it seems that the Uri is relative, at this stage we can only assume that
+        // the image requested is in the same assembly as this oblect,
+        // so we modify the string Uri to make it absolute ...
+        stringUri = "pack://application:,,,/" + stringUri.TrimStart(new char[2] { System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar });
+
+        // ... and try to resolve again
+        // at this stage if it doesn't resolve the UriFormatException is thrown
+        uri = new Uri(stringUri);
+      }
+
+      return uri;
+    }
+
+    #endregion // Private Helpers
   }
 }

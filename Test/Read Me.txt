@@ -46,3 +46,9 @@ private void SetSources()
 
 now the Uri will be resolved as relative and an attempt to create greyscaled image will fail because
 the path to the imagesource is wrong.
+
+
+
+Window3.XAML
+
+Here GreyableImage is being constructed from code using constructor that takes string Uri as an argument.
