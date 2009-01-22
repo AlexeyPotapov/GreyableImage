@@ -7,7 +7,7 @@
         Width="700">
   <DockPanel>
     <StackPanel DockPanel.Dock="Top" Orientation="Vertical">
-      <CheckBox Name="checkbox" IsChecked="True" Margin="10"
+      <CheckBox Name="checkbox" IsChecked="False" Margin="10"
                 Content="Enable Controls - when unticked all controls below are disabled"/>
       <CheckBox Click="CheckBox_Click" Margin="10"
                 Content="Apply Opacity mask to top 4 images"/>
@@ -46,7 +46,7 @@
       
       <StackPanel Orientation="Horizontal">
         <gi:GreyableImage Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
-                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}">
+                          IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}">
           <gi:GreyableImage.Source>
             <DrawingImage>
               <DrawingImage.Drawing>

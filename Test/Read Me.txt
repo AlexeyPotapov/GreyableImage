@@ -52,3 +52,20 @@ the path to the imagesource is wrong.
 Window3.XAML
 
 Here GreyableImage is being constructed from code using constructor that takes string Uri as an argument.
+
+
+
+
+Window4.XAML
+
+Same as Window1 example but using IsGreyable attached property on standart WPF images instead.
+
+
+
+
+Window5.XAML
+
+For testing and comparing both GreyableImage and attachable IsGreyable property approaches.
+
+Allows to check for changes in opacity, applying opacity mask, enabling disabling images and 
+setting IsGreyable to true/false using checkbox.
