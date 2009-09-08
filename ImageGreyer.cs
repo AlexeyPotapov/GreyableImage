@@ -196,7 +196,7 @@ namespace GreyableImage
     /// <summary>
     /// Called when Source property of the Image is changed
     /// </summary>
-    private void OnChangedImageSource(object sender, DataTransferEventArgs e)
+    private void OnChangedImageSource(object sender, EventArgs e)
     {
       // only recache Source if it's a new one
       if (!object.ReferenceEquals(_image.Source, _sourceColour) &&
@@ -243,12 +243,16 @@ namespace GreyableImage
 
       // set event handlers
       _image.IsEnabledChanged += OnChangedImageIsEnabled;
-      _image.SourceUpdated += OnChangedImageSource;
 
-      // there is no change notification event for OpacityMask dependency property in Image class
-      // but we can use property descriptor to add value changed callback
-      DependencyPropertyDescriptor descriptor = DependencyPropertyDescriptor.FromProperty(Image.OpacityMaskProperty, typeof(Image));
-      descriptor.AddValueChanged(_image, OnChangedImageOpacityMask);
+      // there is no change notification event for OpacityMask dependency property 
+      // in Image class but we can use property descriptor to add value changed callback
+      DependencyPropertyDescriptor dpDescriptor = DependencyPropertyDescriptor.FromProperty(Image.OpacityMaskProperty, typeof(Image));
+      dpDescriptor.AddValueChanged(_image, OnChangedImageOpacityMask);
+
+      // there is no change notification event for Source dependency property
+      // in Image class but we can use property descriptor to add value changed callback
+      dpDescriptor = DependencyPropertyDescriptor.FromProperty(Image.SourceProperty, typeof(Image));
+      dpDescriptor.AddValueChanged(_image, OnChangedImageSource);
     }
 
     /// <summary>
@@ -260,12 +264,16 @@ namespace GreyableImage
       {
         // remove all event handlers first...
         _image.IsEnabledChanged -= OnChangedImageIsEnabled;
-        _image.SourceUpdated -= OnChangedImageSource;
 
         // there is no special change notification event for OpacityMask dependency property in Image class
         // but we can use property descriptor to remove value changed callback
-        DependencyPropertyDescriptor descriptor = DependencyPropertyDescriptor.FromProperty(Image.OpacityMaskProperty, typeof(Image));
-        descriptor.RemoveValueChanged(_image, OnChangedImageOpacityMask);
+        DependencyPropertyDescriptor dpDescriptor = DependencyPropertyDescriptor.FromProperty(Image.OpacityMaskProperty, typeof(Image));
+        dpDescriptor.RemoveValueChanged(_image, OnChangedImageOpacityMask);
+
+        // there is no change notification event for Source dependency property 
+        // in Image class but we can use property descriptor to add value changed callback
+        dpDescriptor = DependencyPropertyDescriptor.FromProperty(Image.SourceProperty, typeof(Image));
+        dpDescriptor.RemoveValueChanged(_image, OnChangedImageSource);
 
         // in case the image is disabled we have to change the Source and OpacityMask 
         // properties back to the original values

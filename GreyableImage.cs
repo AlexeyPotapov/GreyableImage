@@ -82,13 +82,8 @@ namespace GreyableImage
     /// This constructor simplifies creating GreyableImage from code
     /// </summary>
     /// <param name="sourceUri">string Uri used to set Source property</param>
-    public GreyableImage(String sourceUri)
+    public GreyableImage(String sourceUri) : this()
     {
-      // since this class was intended for use in toolbars and menus it is most often the case that the image should
-      // not be stretched and should be snapped to pixels so those properties are set this way by default
-      SnapsToDevicePixels = true;
-      Stretch = Stretch.None;
-
       try
       {
         Source = new BitmapImage(GetAbsoluteUri(sourceUri));
