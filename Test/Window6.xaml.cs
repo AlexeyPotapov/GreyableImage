@@ -44,7 +44,8 @@ namespace Test
       if (true == ofd.ShowDialog())
       {
         ImageSource = ofd.FileName;
-        image.Source = new BitmapImage(new Uri(ofd.FileName));
+        image1.Source = new BitmapImage(new Uri(ofd.FileName));
+        image2.Source = new BitmapImage(new Uri(ofd.FileName));
       }
     }
   }

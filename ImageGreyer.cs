@@ -17,14 +17,14 @@
 //IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
 //WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.ComponentModel;
-
 using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace GreyableImage
 {
@@ -58,6 +58,11 @@ namespace GreyableImage
   /// </summary>
   public class ImageGreyer
   {
+    /// <summary>
+    /// No arguments delegate, used to call no argument void methods using BeginEnvoke.
+    /// </summary>
+    public delegate void NoArgDelegate();
+
     #region Fields
 
     // image this effect is attached to
@@ -179,18 +184,7 @@ namespace GreyableImage
     /// </summary>
     private void OnChangedImageIsEnabled(object sender, DependencyPropertyChangedEventArgs e)
     {
-      if ((bool)e.NewValue)
-      {
-        // change Source and OpacityMask of an image back to original values
-        _image.Source = _sourceColour;
-        _image.OpacityMask = _opacityMaskColour;
-      }
-      else
-      {
-        // change Source and OpacityMask of an image to values generated for greyscale version
-        _image.Source = _sourceGreyscale;
-        _image.OpacityMask = _opacityMaskGreyscale;
-      }
+      UpdateImage();
     }
 
     /// <summary>
@@ -198,11 +192,18 @@ namespace GreyableImage
     /// </summary>
     private void OnChangedImageSource(object sender, EventArgs e)
     {
+      Image image = sender as Image;
+
       // only recache Source if it's a new one
-      if (!object.ReferenceEquals(_image.Source, _sourceColour) &&
-          !object.ReferenceEquals(_image.Source, _sourceGreyscale))  
+      if (null != image &&
+          !object.ReferenceEquals(image.Source, _sourceColour) &&
+          !object.ReferenceEquals(image.Source, _sourceGreyscale))  
       {
         SetSources();
+
+        // have to asynchronously invoke UpdateImage because it changes the Source property 
+        // of an image, but we cannot change it from within its change notification handler.
+        image.Dispatcher.BeginInvoke(DispatcherPriority.Background, new NoArgDelegate(UpdateImage));
       }
     }
 
@@ -231,15 +232,14 @@ namespace GreyableImage
     /// </summary>
     private void Attach()
     {
-      // first we need to cache original and greyscale Sources and OpacityMasks
+      // first we need to cache original and greyscale Sources ...
       SetSources();
+      
+      // ... and OpacityMasks
+      SetOpacityMasks();
 
       // now if the image is disabled we need to grey it out now
-      if (!_image.IsEnabled)
-      {
-        _image.Source = _sourceGreyscale;
-        _image.OpacityMask = _opacityMaskGreyscale;
-      }
+      UpdateImage();
 
       // set event handlers
       _image.IsEnabledChanged += OnChangedImageIsEnabled;
@@ -277,11 +277,8 @@ namespace GreyableImage
 
         // in case the image is disabled we have to change the Source and OpacityMask 
         // properties back to the original values
-        if (!_image.IsEnabled)
-        {
-          _image.Source = _sourceColour;
-          _image.OpacityMask = _opacityMaskColour;
-        }
+        _image.Source = _sourceColour;
+        _image.OpacityMask = _opacityMaskColour;
 
         // now release all the references we hold
         _image = null;
@@ -301,12 +298,6 @@ namespace GreyableImage
       // in case greyscale image cannot be created set greyscale source to original Source first
       _sourceGreyscale = _sourceColour = _image.Source;
 
-      _opacityMaskColour = _image.OpacityMask;
-
-      // create Opacity Mask for greyscale image as FormatConvertedBitmap does not keep transparency info
-      _opacityMaskGreyscale = new ImageBrush(_sourceColour);
-      _opacityMaskGreyscale.Opacity = 0.6;
-
       try
       {
         // get the string Uri for the original image source first
@@ -322,6 +313,41 @@ namespace GreyableImage
       {
         System.Diagnostics.Debug.Fail("The Image used cannot be greyed out.",
                                       "Use BitmapImage or URI as a Source in order to allow greyscaling. Make sure the absolute Uri is used as relative Uri may sometimes resolve incorrectly.\n\nException: " + e.Message);
+      }
+    }
+
+    /// <summary>
+    /// Cashes original Image opacity mask, creates and caches greyscale Image opacity mask.
+    /// </summary>
+    private void SetOpacityMasks()
+    {
+      if (null == _image.Source)
+        return;
+
+      _opacityMaskColour = _image.OpacityMask;
+
+      // create Opacity Mask for greyscale image as FormatConvertedBitmap used to 
+      // create greyscale image does not preserve transparency info.
+      _opacityMaskGreyscale = new ImageBrush(_sourceColour);
+      _opacityMaskGreyscale.Opacity = 0.6;
+    }
+
+    /// <summary>
+    /// Sets image source and opacity mask from cache.
+    /// </summary>
+    public  void UpdateImage()
+    {
+      if (_image.IsEnabled)
+      {
+        // change Source and OpacityMask of an image back to original values
+        _image.Source = _sourceColour;
+        _image.OpacityMask = _opacityMaskColour;
+      }
+      else
+      {
+        // change Source and OpacityMask of an image to values generated for greyscale version
+        _image.Source = _sourceGreyscale;
+        _image.OpacityMask = _opacityMaskGreyscale;
       }
     }
 
@@ -353,7 +379,6 @@ namespace GreyableImage
 
       return uri;
     }
-
 
     #endregion // Helper methods
   }
