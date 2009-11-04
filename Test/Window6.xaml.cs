@@ -22,9 +22,6 @@ namespace Test
       set { SetValue(ImageSourceProperty, value); }
     }
 
-
-
-
     public Window6()
     {
       InitializeComponent();

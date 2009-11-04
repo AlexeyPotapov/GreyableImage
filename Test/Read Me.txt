@@ -1,4 +1,4 @@
-﻿Window1.XAML
+﻿**** Window1 ****
 
 Here are some tests for different scenarious when GreyableImage is used directly from XAML.
 Use checkboxes to enable/disable all images below and to apply opacity masks to some of them.
@@ -6,7 +6,7 @@ Read notes to the left of each image for explanations.
 
 
 
-Window2.XAML
+**** Window2 ****
 
 In this case the Greyable image is used indirectly. There is a CustomControl with Icon dependency
 property of type object which allows it to be set to anything from XAML. The CoerseValue callback is than 
@@ -49,23 +49,42 @@ the path to the imagesource is wrong.
 
 
 
-Window3.XAML
+**** Window3 ****
 
 Here GreyableImage is being constructed from code using constructor that takes string Uri as an argument.
 
 
 
 
-Window4.XAML
+**** Window4 ****
 
 Same as Window1 example but using IsGreyable attached property on standart WPF images instead.
 
 
 
 
-Window5.XAML
+**** Window5 ****
 
 For testing and comparing both GreyableImage and attachable IsGreyable property approaches.
 
 Allows to check for changes in opacity, applying opacity mask, enabling disabling images and 
 setting IsGreyable to true/false using checkbox.
+
+
+
+**** Window6 ****
+
+For testing both GreyableImage and IsGreyable property for the case when Image Source is changing
+while the image is enabled or disabled.
+
+
+
+**** Window7 ****
+
+Similar to Window6 but in this case Image source can be changed through Image Style Triggers or 
+from code. This example shows that changing property value directly from code or in XAML will take
+precedence over Style triggers which will not be able to change the property value, once it is set 
+directly. Note how first and third images stop reacting on first button, once second is used. 
+
+This is a WPF feature that is explaned in this MSDN article:
+http://msdn.microsoft.com/en-us/library/ms743230%28classic%29.aspx#listing

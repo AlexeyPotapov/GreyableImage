@@ -15,7 +15,7 @@
     </DockPanel>
     
     <ToolBar DockPanel.Dock="Top">
-      <CheckBox Content="Greyable" x:Name="tbGreyable" Margin="0,0,2,0" />
+      <CheckBox Content="Greyable" x:Name="tbGreyable" Margin="0,0,2,0" IsChecked="True"/>
       <CheckBox Content="Enable" IsChecked="True" x:Name="tbEnabled" Margin="0,0,2,0" />
     </ToolBar>
 

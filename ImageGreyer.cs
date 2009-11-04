@@ -58,11 +58,6 @@ namespace GreyableImage
   /// </summary>
   public class ImageGreyer
   {
-    /// <summary>
-    /// No arguments delegate, used to call no argument void methods using BeginEnvoke.
-    /// </summary>
-    public delegate void NoArgDelegate();
-
     #region Fields
 
     // image this effect is attached to
@@ -203,7 +198,7 @@ namespace GreyableImage
 
         // have to asynchronously invoke UpdateImage because it changes the Source property 
         // of an image, but we cannot change it from within its change notification handler.
-        image.Dispatcher.BeginInvoke(DispatcherPriority.Background, new NoArgDelegate(UpdateImage));
+        image.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(UpdateImage));
       }
     }
 
@@ -249,7 +244,7 @@ namespace GreyableImage
       DependencyPropertyDescriptor dpDescriptor = DependencyPropertyDescriptor.FromProperty(Image.OpacityMaskProperty, typeof(Image));
       dpDescriptor.AddValueChanged(_image, OnChangedImageOpacityMask);
 
-      // there is no change notification event for Source dependency property
+      // there is no change notification for Source dependency property
       // in Image class but we can use property descriptor to add value changed callback
       dpDescriptor = DependencyPropertyDescriptor.FromProperty(Image.SourceProperty, typeof(Image));
       dpDescriptor.AddValueChanged(_image, OnChangedImageSource);
@@ -335,7 +330,7 @@ namespace GreyableImage
     /// <summary>
     /// Sets image source and opacity mask from cache.
     /// </summary>
-    public  void UpdateImage()
+    public void UpdateImage()
     {
       if (_image.IsEnabled)
       {
@@ -370,7 +365,7 @@ namespace GreyableImage
         // it seems that the Uri is relative, at this stage we can only assume that
         // the image requested is in the same assembly as this oblect,
         // so we modify the string Uri to make it absolute ...
-        stringUri = "pack://application:,,,/" + stringUri.TrimStart(new char[2] { System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar });
+        stringUri = "pack://application:,,,/" + stringUri.TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
 
         // ... and try to resolve again
         // at this stage if it doesn't resolve the UriFormatException is thrown

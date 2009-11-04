@@ -57,11 +57,6 @@ namespace GreyableImage
   /// </summary>
   public class GreyableImage : Image
   {
-    /// <summary>
-    /// No arguments delegate, used to call no argument void methods using BeginEnvoke.
-    /// </summary>
-    public delegate void NoArgDelegate();
-
     #region Fields
 
     // these are holding references to original and greyscale ImageSources
@@ -125,7 +120,7 @@ namespace GreyableImage
 
         // have to asynchronously invoke UpdateImage because it changes the Source property 
         // of an image, but we cannot change it from within its change notification handler.
-        Dispatcher.BeginInvoke(DispatcherPriority.Background, new NoArgDelegate(UpdateImage));
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(UpdateImage));
       }
       else if (e.Property.Name.Equals("OpacityMask") &&
                !object.ReferenceEquals(OpacityMask, _opacityMaskColour) &&
@@ -216,7 +211,7 @@ namespace GreyableImage
         // it seems that the Uri is relative, at this stage we can only assume that
         // the image requested is in the same assembly as this oblect,
         // so we modify the string Uri to make it absolute ...
-        stringUri = "pack://application:,,,/" + stringUri.TrimStart(new char[2] { System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar });
+        stringUri = "pack://application:,,,/" + stringUri.TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
 
         // ... and try to resolve again
         // at this stage if it doesn't resolve the UriFormatException is thrown
