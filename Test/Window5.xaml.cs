@@ -25,7 +25,7 @@ namespace Test
 
     private void ApplyOpacityMask(object sender, RoutedEventArgs e)
     {
-      if (null == img || null == g_img)
+      if (null == img || null == g_img || null == gd_img)
         return;
 
       Color c1 = new Color();
@@ -33,15 +33,15 @@ namespace Test
       Color c2 = new Color();
       c2.A = 0xAA;
 
-      img.OpacityMask = g_img.OpacityMask = new LinearGradientBrush(c1, c2, 90);
+      img.OpacityMask = g_img.OpacityMask = gd_img.OpacityMask = new LinearGradientBrush(c1, c2, 90);
     }
 
     private void RemoveOpacityMask(object sender, RoutedEventArgs e)
     {
-      if (null == img || null == g_img)
+      if (null == img || null == g_img || null == gd_img)
         return;
 
-      img.OpacityMask = g_img.OpacityMask = null;
+      img.OpacityMask = g_img.OpacityMask = gd_img.OpacityMask = null;
     }
 
   }

@@ -3,11 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:gi="clr-namespace:GreyableImage;assembly=GreyableImage"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        Title="Window5" Height="200" Width="500"
+        Title="Window5" Height="200" Width="700"
         WindowStartupLocation="CenterScreen">
   
   <Window.Resources>
-    <sys:Boolean x:Key="enabled">false</sys:Boolean>
+    <sys:Boolean x:Key="enabled">true</sys:Boolean>
     <sys:Boolean x:Key="greyable">false</sys:Boolean>
     <sys:Double x:Key="opacity">0.5</sys:Double>
   </Window.Resources>
@@ -21,10 +21,11 @@
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
     
     <!-- common checkboxes and sliders -->
-    <Border Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,1" BorderBrush="Gray" BorderThickness="0,0,0,1">
+    <Border Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,1" BorderBrush="Gray" BorderThickness="0,0,0,1">
       <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Left">
         <CheckBox x:Name="cb_enable" Content="IsEnabled" Margin="5"
                   IsChecked="{StaticResource enabled}"/>
@@ -51,34 +52,83 @@
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0" Text="WPF Image" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        <CheckBox Grid.Column="1" x:Name="cb_greyout" Content="IsGreyable" VerticalAlignment="Center" HorizontalAlignment="Center"
+        <CheckBox Grid.Column="1" x:Name="image_greyout" Content="IsGreyable" 
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
                   IsChecked="{StaticResource greyable}"/>
         <Decorator/>
       </Grid>
     </Border>
     
-    <Border Grid.Row="1" Grid.Column="1" Margin="1,1,0,1" BorderBrush="Gray" BorderThickness="1,1,0,1">
+    <Border Grid.Row="1" Grid.Column="1" Margin="1" BorderBrush="Gray" BorderThickness="1">
       <TextBlock Text="Greyable Image" VerticalAlignment="Center" HorizontalAlignment="Center"/>
     </Border>
 
+    <Border Grid.Row="1" Grid.Column="2" Margin="1,1,0,1" BorderBrush="Gray" BorderThickness="1,1,0,1">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0" Text="Drawing Image" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <CheckBox Grid.Column="1" x:Name="d_image_greyout" Content="IsGreyable" 
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  IsChecked="{StaticResource greyable}"/>
+        <Decorator/>
+      </Grid>
+    </Border>
+    
     
     <!-- WPF image with IsGreyable attached property -->
     <Border Grid.Row="2" Grid.Column="0" Margin="0,1,1,0" BorderBrush="Gray" BorderThickness="0,1,1,0">
-      <Image x:Name="img" Source="image.png" VerticalAlignment="Top" HorizontalAlignment="Center"
+      <Image x:Name="img" 
+             Source="image.png" VerticalAlignment="Top" HorizontalAlignment="Center"
              Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
              IsEnabled="{Binding ElementName=cb_enable, Path=IsChecked}"
-             gi:ImageGreyer.IsGreyable="{Binding ElementName=cb_greyout, Path=IsChecked}"
+             gi:ImageGreyer.IsGreyable="{Binding ElementName=image_greyout, Path=IsChecked}"
              Opacity="{Binding ElementName=sldr_opacity, Path=Value}"/>
     </Border>
 
 
     <!-- GreyableImage -->
-    <Border Grid.Row="2" Grid.Column="1" Margin="1,1,0,0" BorderBrush="Gray" BorderThickness="1,1,0,0">
-      <gi:GreyableImage x:Name="g_img" Source="image.png" VerticalAlignment="Top" HorizontalAlignment="Center"
+    <Border Grid.Row="2" Grid.Column="1" Margin="1,1,1,0" BorderBrush="Gray" BorderThickness="1,1,1,0">
+      <gi:GreyableImage x:Name="g_img" 
+                        Source="image.png" VerticalAlignment="Top" HorizontalAlignment="Center"
                         Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
                         IsEnabled="{Binding ElementName=cb_enable, Path=IsChecked}"
                         Opacity="{Binding ElementName=sldr_opacity, Path=Value}"/>
     </Border>
+    
+    <!-- DrawingImage -->
+    <Border Grid.Row="2" Grid.Column="2" Margin="1,1,0,0" BorderBrush="Gray" BorderThickness="1,1,0,0">
+      <Image x:Name="gd_img"
+             VerticalAlignment="Top" HorizontalAlignment="Center"
+             Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+             IsEnabled="{Binding ElementName=cb_enable, Path=IsChecked}"
+             gi:ImageGreyer.IsGreyable="{Binding ElementName=d_image_greyout, Path=IsChecked}"
+             Opacity="{Binding ElementName=sldr_opacity, Path=Value}">
+        <Image.Source>
+          <DrawingImage>
+            <DrawingImage.Drawing>
+              <GeometryDrawing>
+                <GeometryDrawing.Geometry>
+                  <GeometryGroup>
+                    <EllipseGeometry Center="50,50" RadiusX="45" RadiusY="20" />
+                    <EllipseGeometry Center="50,50" RadiusX="20" RadiusY="45" />
+                  </GeometryGroup>
+                </GeometryDrawing.Geometry>
+                <GeometryDrawing.Brush>
+                  <SolidColorBrush Color="Red"/>
+                </GeometryDrawing.Brush>
+                <GeometryDrawing.Pen>
+                  <Pen Thickness="5" Brush="Blue" />
+                </GeometryDrawing.Pen>
+              </GeometryDrawing>
+            </DrawingImage.Drawing>
+          </DrawingImage>
+        </Image.Source>
+      </Image>
+    </Border>
+    
   </Grid>
     
   

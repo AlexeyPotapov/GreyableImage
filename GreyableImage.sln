@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreyableImage", "GreyableIm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomControl", "Test\CustomControl\CustomControl.csproj", "{BEA4967C-A875-4F0D-9B9D-685E0C2E7CC9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{6D9FD897-B8EF-4807-953E-FB5BE748A4C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,5 +30,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BEA4967C-A875-4F0D-9B9D-685E0C2E7CC9} = {6D9FD897-B8EF-4807-953E-FB5BE748A4C9}
+		{ED445A42-FD28-4A17-A6CD-A9D602ABFA91} = {6D9FD897-B8EF-4807-953E-FB5BE748A4C9}
 	EndGlobalSection
 EndGlobal

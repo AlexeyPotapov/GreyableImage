@@ -42,17 +42,18 @@ namespace GreyableImage
   ///    transparency information. Because of that if an OpacityMask is applied to original image that mask 
   ///    has to be combined with that special opacity mask of greyscale image in order to make a proper 
   ///    greyscale image look. If you know how to combine two opacity masks please let me know.
-  /// 2) DrawingImage source is not supported at the moment.
-  /// 3) Have not tried to use any BitmapSource derived sources accept for BitmapImage so it may not be 
-  ///    able to convert some of them to greyscale.
-  /// 4) When specifying source Uri from XAML try to use Absolute Uri otherwise the greyscale image
-  ///    may not be created in some scenarious. There is some code to improve the situation but I cannot 
-  ///    guarantee it will work in all possible scenarious.
-  /// 5) In case the greyscaled version cannot be created for whatever reason the original image with 
-  ///    60% opacity (i.e. dull colours) will be used instead (that will work even with the DrawingImage 
-  ///    source).
-  /// 6) SnapsToDevicePixels is set to true by default
-  /// 7) Stretch is set to none by default
+  /// 2) When specifying source Uri from XAML try to use Absolute Uri otherwise the greyscale image
+  ///    may not be created in some scenarious. There is GetAbsoluteUri() method aiming to improve the situation 
+  ///    by trying to generate an absolute Uri from given source, but I cannot guarantee it will work in all 
+  ///    possible scenarious.
+  /// 3) In case the greyscaled version cannot be created for whatever reason the original image with 
+  ///    60% opacity (i.e. dull colours) will be used instead.
+  /// 4) Changing Source from code will take precedence over Style triggers. Source set through triggers 
+  ///    will be ignored once it was set from code. This is not the fault of the control, but is the way 
+  ///    WPF works: http://msdn.microsoft.com/en-us/library/ms743230%28classic%29.aspx
+  /// 5) SnapsToDevicePixels is set to true by default
+  /// 6) Stretch is set to none by default
+  /// 7) Supports DrawingImage as a source, thanks to Morten Schou.
   /// </remarks>
   /// </summary>
   public class GreyableImage : Image
@@ -146,19 +147,40 @@ namespace GreyableImage
 
       try
       {
-        // get the string Uri for the original image source first
-        String stringUri = TypeDescriptor.GetConverter(Source).ConvertTo(Source, typeof(string)) as string;
-        
-        // generate an absolute Uri for the string Uri
-        Uri uri = GetAbsoluteUri(stringUri);
+        BitmapSource colourBitmap;
+              
+        if (_sourceColour is DrawingImage)
+        {
+          // support for DrawingImage as a source - thanks to Morten Schou who provided this code
+          colourBitmap = new RenderTargetBitmap((int)_sourceColour.Width,
+                                                (int)_sourceColour.Height,
+                                                96, 96,
+                                                PixelFormats.Default);
+          DrawingVisual drawingVisual = new DrawingVisual();
+          DrawingContext drawingDC = drawingVisual.RenderOpen();
+          drawingDC.DrawImage(_sourceColour,
+                              new Rect(new Size(_sourceColour.Height,
+                                                _sourceColour.Width)));
+          drawingDC.Close();
+          (colourBitmap as RenderTargetBitmap).Render(drawingVisual);
+          _sourceGreyscale = new FormatConvertedBitmap(colourBitmap, PixelFormats.Gray8, null, 0);
+        }
+        else
+        {
+          // get the string Uri for the original image source first
+          String stringUri = TypeDescriptor.GetConverter(_sourceColour).ConvertTo(_sourceColour, typeof(string)) as string;
+
+          // generate an absolute Uri for the string Uri
+          colourBitmap = new BitmapImage(GetAbsoluteUri(stringUri));
+        }
 
         // create and cache greyscale ImageSource
-        _sourceGreyscale = new FormatConvertedBitmap(new BitmapImage(uri), PixelFormats.Gray8, null, 0);
+        _sourceGreyscale = new FormatConvertedBitmap(colourBitmap, PixelFormats.Gray8, null, 0);
       }
       catch (Exception e)
       {
         System.Diagnostics.Debug.Fail("The Image used cannot be greyed out.",
-                                      "Use BitmapImage or URI as a Source in order to allow greyscaling. Make sure the absolute Uri is used as relative Uri may sometimes resolve incorrectly.\n\nException: " + e.Message);
+                                      "Make sure absolute Uri is used, relative Uri may sometimes resolve incorrectly.\n\nException: " + e.Message);
       }
     }
 

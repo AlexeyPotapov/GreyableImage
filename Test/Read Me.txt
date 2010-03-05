@@ -67,6 +67,8 @@ Same as Window1 example but using IsGreyable attached property on standart WPF i
 
 For testing and comparing both GreyableImage and attachable IsGreyable property approaches.
 
+IsGreyable is attached to two Images - one with source as a file another with source as DrawingImage.
+
 Allows to check for changes in opacity, applying opacity mask, enabling disabling images and 
 setting IsGreyable to true/false using checkbox.
 
