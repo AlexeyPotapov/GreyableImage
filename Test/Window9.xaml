@@ -1,0 +1,28 @@
+﻿<Window x:Class="Test.Window9"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:gi="clr-namespace:GreyableImage;assembly=GreyableImage"
+        Title="Window9"
+        Height="300"
+        Width="300">
+  <Grid>
+    <StackPanel Orientation="Vertical">
+      <CheckBox x:Name="onoff" IsChecked="True">On/Off</CheckBox>
+      
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Image + effect:  "/>
+        <Image Stretch="None"
+               Source="{Binding ImgSrc}"
+               IsEnabled="{Binding IsChecked, ElementName=onoff}"
+               gi:ImageGreyer.IsGreyable="True"/>
+      </StackPanel>    
+      
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="GreyableImage:  "/>
+        <gi:GreyableImage IsEnabled="{Binding IsChecked, ElementName=onoff}"
+                          Source="{Binding ImgSrc}"/>
+      </StackPanel>
+     
+    </StackPanel>
+  </Grid>
+</Window>

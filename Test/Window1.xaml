@@ -22,7 +22,7 @@
 
       <StackPanel Orientation="Horizontal">
         <gi:GreyableImage x:Name="img2" Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
-                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}" Opacity="0.5">
+                          IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}" Opacity="0.5">
           <gi:GreyableImage.Source>
             <BitmapImage UriSource="image.png"/>
           </gi:GreyableImage.Source>
@@ -32,15 +32,15 @@
 
       <StackPanel Orientation="Horizontal" Background="LightGreen">
         <gi:GreyableImage x:Name="img3" Source="image.png" 
-                             Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
-                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}"/>
+                          Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+                          IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}"/>
         <TextBlock Margin="10,0,10,0" Text="greyable image on green background created by setting Source to Uri" VerticalAlignment="Center"/>
       </StackPanel>
       
       <StackPanel Orientation="Horizontal" Background="Black">
         <gi:GreyableImage x:Name="img4" Source="image.png" 
-                             Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
-                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}"/>
+                          Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
+                          IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}"/>
         <TextBlock Foreground="White" Margin="10,0,10,0" Text="greyable image on a black bacground" VerticalAlignment="Center"/>
       </StackPanel>
       
@@ -77,7 +77,7 @@
       
       <StackPanel Orientation="Horizontal">
         <gi:GreyableImage Source="image.png" Width="16" Height="16" SnapsToDevicePixels="True" Margin="5"
-                             IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}">
+                          IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}">
           <gi:GreyableImage.BitmapEffect>
             <BlurBitmapEffect KernelType="Gaussian" Radius="1" />
           </gi:GreyableImage.BitmapEffect>
@@ -90,7 +90,7 @@
         <Button Margin="5" Width="55" Height="25" IsEnabled="{Binding ElementName=checkbox, Path=IsChecked}">
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <gi:GreyableImage Source="image.png" Width="16" Height="16" SnapsToDevicePixels="True"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,5,0"/>
             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="test"/>
           </StackPanel>
         </Button>

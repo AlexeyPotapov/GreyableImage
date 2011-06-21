@@ -24,6 +24,7 @@ namespace Test
 
     public Window6()
     {
+      DataContext = this;
       InitializeComponent();
     }
 
@@ -39,11 +40,7 @@ namespace Test
       ofd.CheckFileExists = true;
 
       if (true == ofd.ShowDialog())
-      {
         ImageSource = ofd.FileName;
-        image1.Source = new BitmapImage(new Uri(ofd.FileName));
-        image2.Source = new BitmapImage(new Uri(ofd.FileName));
-      }
     }
   }
 }

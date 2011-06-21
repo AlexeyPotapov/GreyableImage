@@ -52,8 +52,10 @@ namespace GreyableImage
   ///    60% opacity (i.e. dull colours) will be used instead.
   /// 4) Changing Source from code will take precedence over Style triggers. Source set through triggers 
   ///    will be ignored once it was set from code. This is not the fault of the control, but is the way 
-  ///    WPF works: http://msdn.microsoft.com/en-us/library/ms743230%28classic%29.aspx
+  ///    WPF works: http://msdn.microsoft.com/en-us/library/ms743230%28classic%29.aspx.
   /// 5) Supports DrawingImage as a source, thanks to Morten Schou.
+  /// 6) Image Source or OpacityMask bindings now work when greyability effect is used.
+  /// 7) Supports BitmapSource/InteropBitmap as a source, thanks to Patrick van der Velde.
   /// </remarks>
   /// </summary>
   public class ImageGreyer
@@ -69,9 +71,12 @@ namespace GreyableImage
     // these are holding original and greyscale opacity masks
     private Brush _opacityMaskColour, _opacityMaskGreyscale;
 
+    // bindings that were set on Source and OpacityMask properties of an image
+    private Binding _sourceBinding, _opacityMaskBinding;
+
     #endregion // Fields
 
-    #region attachable properties
+    #region Attachable Properties
 
     #region IsGreyable
 
@@ -136,7 +141,49 @@ namespace GreyableImage
 
     #endregion // GreyabilityEffect
 
-    #endregion // attachable properties
+    #region Source
+
+    /// <summary>
+    /// Attachable DependencyProperty used as a backing store for Source property.
+    /// </summary>
+    public static readonly DependencyProperty SourceProperty =
+      DependencyProperty.RegisterAttached("Source", typeof(ImageSource), typeof(ImageGreyer),
+                                          new PropertyMetadata(OnChangedSource));
+
+    /// <summary>
+    /// Callback when the Source property is set or changed.
+    /// </summary>
+    private static void OnChangedSource(DependencyObject o, DependencyPropertyChangedEventArgs args)
+    {
+      Image img = o as Image;
+      if (null != img)
+        img.Source = args.NewValue as ImageSource;
+    }
+
+    #endregion // Source
+
+    #region OpacityMask
+
+    /// <summary>
+    /// Attachable DependencyProperty used as a backing store for OpacityMask property.
+    /// </summary>
+    public static readonly DependencyProperty OpacityMaskProperty =
+      DependencyProperty.RegisterAttached("OpacityMask", typeof(Brush), typeof(ImageGreyer),
+                                          new PropertyMetadata(OnChangedOpacityMask));
+
+    /// <summary>
+    /// Callback when the OpacityMask property is set or changed.
+    /// </summary>
+    private static void OnChangedOpacityMask(DependencyObject o, DependencyPropertyChangedEventArgs args)
+    {
+      Image img = o as Image;
+      if (null != img)
+        img.OpacityMask = args.NewValue as Brush;
+    }
+
+    #endregion // OpacityMask
+
+    #endregion // Attachable Properties
 
     #region Constructor
 
@@ -168,7 +215,7 @@ namespace GreyableImage
     /// <summary>
     /// Called when IsInitialized property of the Image is set to true
     /// </summary>
-    void OnChangedImageInitialized(object sender, EventArgs e)
+    private void OnChangedImageInitialized(object sender, EventArgs e)
     {
       // image is ready for attaching greyability effect
       Attach();
@@ -195,6 +242,7 @@ namespace GreyableImage
           !object.ReferenceEquals(image.Source, _sourceGreyscale))  
       {
         SetSources();
+        SetGreyscaleOpacityMask();
 
         // have to asynchronously invoke UpdateImage because it changes the Source property 
         // of an image, but we cannot change it from within its change notification handler.
@@ -214,7 +262,11 @@ namespace GreyableImage
           !object.ReferenceEquals(image.OpacityMask, _opacityMaskColour) &&
           !object.ReferenceEquals(image.OpacityMask, _opacityMaskGreyscale))
       {
-        _opacityMaskColour = image.OpacityMask;
+        _opacityMaskColour = _image.OpacityMask;
+
+        // have to asynchronously invoke UpdateImage because it changes the OpacityMask property 
+        // of an image, but we cannot change it from within its change notification handler.
+        image.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(UpdateImage));
       }
     }
 
@@ -222,16 +274,22 @@ namespace GreyableImage
 
     #region Helper methods
 
+    #region Attach
+
     /// <summary>
     /// Attaching greyability effect to an Image
     /// </summary>
     private void Attach()
     {
-      // first we need to cache original and greyscale Sources ...
+      // First we steal the bindings that might be set on the image
+      StealBinding();
+
+      // then we cache original and greyscale Sources ...
       SetSources();
-      
+
       // ... and OpacityMasks
-      SetOpacityMasks();
+      _opacityMaskColour = _image.OpacityMask;
+      SetGreyscaleOpacityMask();
 
       // now if the image is disabled we need to grey it out now
       UpdateImage();
@@ -249,6 +307,10 @@ namespace GreyableImage
       dpDescriptor = DependencyPropertyDescriptor.FromProperty(Image.SourceProperty, typeof(Image));
       dpDescriptor.AddValueChanged(_image, OnChangedImageSource);
     }
+
+    #endregion // Attach
+
+    #region Detach
 
     /// <summary>
     /// Detaches this effect from the image, 
@@ -272,8 +334,15 @@ namespace GreyableImage
 
         // in case the image is disabled we have to change the Source and OpacityMask 
         // properties back to the original values
-        _image.Source = _sourceColour;
-        _image.OpacityMask = _opacityMaskColour;
+        if (null != _sourceBinding)
+          _image.SetBinding(Image.SourceProperty, _sourceBinding);
+        else
+          _image.Source = _sourceColour;
+
+        if (null != _opacityMaskBinding)
+          _image.SetBinding(Image.OpacityMaskProperty, _opacityMaskBinding);
+        else
+          _image.OpacityMask = _opacityMaskColour;
 
         // now release all the references we hold
         _image = null;
@@ -281,6 +350,46 @@ namespace GreyableImage
         _sourceColour = _sourceGreyscale = null;
       }
     }
+
+    #endregion // Detach
+
+    #region StealBinding
+
+    /// <summary>
+    /// Checks if Source and OpacityMask properties of an image are databoud
+    /// and if so caches and clears these bindings. Then it clones these 
+    /// bindings and sets them on an image to attached Source and OpacityMask 
+    /// properties registered for this class.
+    /// This allows to keep the binding working while the Source and OpacityMask
+    /// properties of an image are been set directly from code when image is 
+    /// enabled or disabled.
+    /// </summary>
+    private void StealBinding()
+    {
+      if (BindingOperations.IsDataBound(_image, Image.SourceProperty))
+      {
+        _sourceBinding = BindingOperations.GetBinding(_image, Image.SourceProperty);
+        BindingOperations.ClearBinding(_image, Image.SourceProperty);
+
+        Binding b = CloneBinding(_sourceBinding);
+        b.Mode = BindingMode.OneWay;
+        _image.SetBinding(SourceProperty, b);
+      }
+
+      if (BindingOperations.IsDataBound(_image, Image.OpacityMaskProperty))
+      {
+        _opacityMaskBinding = BindingOperations.GetBinding(_image, Image.OpacityMaskProperty);
+        BindingOperations.ClearBinding(_image, Image.OpacityMaskProperty);
+
+        Binding b = CloneBinding(_opacityMaskBinding);
+        b.Mode = BindingMode.OneWay;
+        _image.SetBinding(OpacityMaskProperty, b);
+      }
+    }
+
+    #endregion // StealBinding
+
+    #region SetSources
 
     /// <summary>
     /// Cashes original ImageSource, creates and caches greyscale ImageSource and greyscale opacity mask
@@ -297,7 +406,9 @@ namespace GreyableImage
       {
         BitmapSource colourBitmap;
 
-        if (_sourceColour is DrawingImage)
+        if (_sourceColour is BitmapSource)
+          colourBitmap = _sourceColour as BitmapSource;
+        else if (_sourceColour is DrawingImage)
         {
           // support for DrawingImage as a source - thanks to Morten Schou who provided this code
           colourBitmap = new RenderTargetBitmap((int)_sourceColour.Width,
@@ -332,21 +443,24 @@ namespace GreyableImage
       }
     }
 
+    #endregion // SetSources
+
+    #region SetGreyscaleOpacityMask
+
     /// <summary>
-    /// Cashes original Image opacity mask, creates and caches greyscale Image opacity mask.
+    /// Creates and caches greyscale Image opacity mask.
     /// </summary>
-    private void SetOpacityMasks()
+    private void SetGreyscaleOpacityMask()
     {
-      if (null == _image.Source)
-        return;
-
-      _opacityMaskColour = _image.OpacityMask;
-
       // create Opacity Mask for greyscale image as FormatConvertedBitmap used to 
       // create greyscale image does not preserve transparency info.
       _opacityMaskGreyscale = new ImageBrush(_sourceColour);
       _opacityMaskGreyscale.Opacity = 0.6;
     }
+
+    #endregion // SetGreyscaleOpacityMask
+
+    #region UpdateImage
 
     /// <summary>
     /// Sets image source and opacity mask from cache.
@@ -366,6 +480,10 @@ namespace GreyableImage
         _image.OpacityMask = _opacityMaskGreyscale;
       }
     }
+
+    #endregion // UpdateImage
+
+    #region GetAbsoluteUri
 
     /// <summary>
     /// Creates and returns an absolute Uri using the path provided.
@@ -395,6 +513,47 @@ namespace GreyableImage
 
       return uri;
     }
+
+    #endregion // GetAbsoluteUri
+
+    #region CloneBinding
+
+    /// <summary>
+    /// Clones Binding specified by the argument.
+    /// </summary>
+    /// <param name="original">Binding to be cloned.</param>
+    /// <returns>Clone of the binding specified by the argument.</returns>
+    private Binding CloneBinding(Binding original)
+    {
+      Binding clone = new Binding();
+
+      clone.Path = original.Path;
+      if (null != original.Source)
+        clone.Source = original.Source;
+      else if (null != original.RelativeSource)
+        clone.RelativeSource = original.RelativeSource;
+      else if (null != original.ElementName)
+        clone.ElementName = original.ElementName;
+
+      clone.Mode = original.Mode;
+      clone.TargetNullValue = original.TargetNullValue;
+      clone.UpdateSourceTrigger = original.UpdateSourceTrigger;
+
+      clone.ValidatesOnDataErrors = original.ValidatesOnDataErrors;
+      clone.ValidatesOnExceptions = original.ValidatesOnExceptions;
+      foreach (var rule in original.ValidationRules)
+        clone.ValidationRules.Add(rule);
+
+      clone.FallbackValue = original.FallbackValue;
+
+      clone.Converter = original.Converter;
+      clone.ConverterCulture = original.ConverterCulture;
+      clone.ConverterParameter = original.ConverterParameter;
+
+      return clone;
+    }
+
+    #endregion // CloneBinding
 
     #endregion // Helper methods
   }

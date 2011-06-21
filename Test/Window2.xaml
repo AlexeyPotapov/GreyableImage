@@ -11,6 +11,6 @@
     
     <CheckBox Content="Enable CustomControl" IsChecked="{Binding ElementName=myControl, Path=IsEnabled}"/>
     
-    <cc:CustomControl x:Name="myControl" Grid.Row="1" Icon="image.png"/>
+    <cc:CustomControl x:Name="myControl" Grid.Row="1" Icon="pack://application:,,,/Test;component/image.png"/>
   </Grid>
 </Window>

@@ -77,7 +77,7 @@ setting IsGreyable to true/false using checkbox.
 **** Window6 ****
 
 For testing both GreyableImage and IsGreyable property for the case when Image Source is changing
-while the image is enabled or disabled.
+while the image is enabled or disabled. The Source property of an image is databound
 
 
 
@@ -90,3 +90,15 @@ directly. Note how first and third images stop reacting on first button, once se
 
 This is a WPF feature that is explaned in this MSDN article:
 http://msdn.microsoft.com/en-us/library/ms743230%28classic%29.aspx#listing
+
+
+
+**** Window8 ****
+
+Tests Source binding.
+
+
+
+**** Window9 ****
+
+Tests with InteropBitmap as a source.

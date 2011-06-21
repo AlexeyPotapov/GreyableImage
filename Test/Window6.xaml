@@ -4,14 +4,13 @@
         xmlns:gi="clr-namespace:GreyableImage;assembly=GreyableImage"
         Title="Window6"
         Height="600"
-        Width="1024"
-        x:Name="win">
+        Width="1024">
 
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" Margin="3">
       <TextBlock DockPanel.Dock="Left" Text="ImageSource: " VerticalAlignment="Center"/>
       <Button DockPanel.Dock="Right" Content=" . . . " Click="OnClickBrowse" />
-      <TextBox Text="{Binding ImageSource, ElementName=win}" Margin="10,0"/>
+      <TextBox Text="{Binding ImageSource}" Margin="10,0"/>
     </DockPanel>
     
     <ToolBar DockPanel.Dock="Top">
@@ -39,14 +38,14 @@
       
       <!-- Images -->
       <Border Grid.Row="1" Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0">
-        <Image x:Name="image1"
+        <Image Source="{Binding ImageSource}"
                HorizontalAlignment="Center" VerticalAlignment="Center"
                Stretch="None"
                IsEnabled="{Binding ElementName=tbEnabled, Path=IsChecked}"
                gi:ImageGreyer.IsGreyable="{Binding ElementName=tbGreyable, Path=IsChecked}"/>
       </Border>
       <Border Grid.Row="1" Grid.Column="1" BorderBrush="Gray" BorderThickness="0">
-        <gi:GreyableImage x:Name="image2"
+        <gi:GreyableImage Source="{Binding ImageSource}"
                           HorizontalAlignment="Center" VerticalAlignment="Center"
                           Stretch="None"
                           IsEnabled="{Binding ElementName=tbEnabled, Path=IsChecked}"/>

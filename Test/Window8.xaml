@@ -1,0 +1,42 @@
+﻿<Window x:Class="Test.Window8"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:gi="clr-namespace:GreyableImage;assembly=GreyableImage"
+        Title="Window8"
+        Height="300"
+        Width="300">
+  <Grid>
+    <StackPanel Orientation="Vertical">
+      <StackPanel Orientation="Horizontal">
+        <CheckBox x:Name="onoff" IsChecked="True">On/Off</CheckBox>
+        <ComboBox x:Name="imagesrc" SelectedIndex="0">
+          <ComboBoxItem DataContext="img0.bmp" Content="img0.bmp"/>
+          <ComboBoxItem DataContext="img1.bmp" Content="img1.bmp"/>
+          <ComboBoxItem DataContext="img2.bmp" Content="img2.bmp"/>
+        </ComboBox>
+      </StackPanel>
+      
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Image + effect:  "/>
+        <Image Source="{Binding SelectedItem.Content, ElementName=imagesrc}" Stretch="None"
+               IsEnabled="{Binding IsChecked, ElementName=onoff}"
+               gi:ImageGreyer.IsGreyable="True">
+          <Image.OpacityMask>
+            <SolidColorBrush Color="Red" Opacity="0.3"/>
+          </Image.OpacityMask>
+        </Image>
+      </StackPanel>    
+      
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="GreyableImage:  "/>
+        <gi:GreyableImage Source="{Binding SelectedItem.Content, ElementName=imagesrc}"
+                          IsEnabled="{Binding IsChecked, ElementName=onoff}">
+          <Image.OpacityMask>
+            <SolidColorBrush Opacity="0.3" Color="Red"/>
+          </Image.OpacityMask>
+        </gi:GreyableImage>
+      </StackPanel>
+     
+    </StackPanel>
+  </Grid>
+</Window>
