@@ -1,6 +1,3 @@
-# GreyableImage
-GreyableImage allows to make WPF Image grey itself out when it is disabled. Useful for Toolbar, Menu or Button icons.
-
 GreyableImage - subclasses WPF Image control, allowing it to grey itself out when disabled.
 
     <Button>
